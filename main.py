@@ -1,13 +1,16 @@
 import csv
 import os
-import click
+# import click
+import argparse
 from Track import Track
 from tinytag import TinyTag
 
 
 def main():
     # open csv
-    playlist_csv = './resources/playlist.csv'
+    # playlist_csv = './resources/playlist.csv'
+
+    playlist_csv = setup_args().f
     track_dic = parse_dic_from_csv(playlist_csv)
 
     # get list of filenames in current directory
@@ -31,6 +34,25 @@ def main():
         print(elem)
 
 
+def setup_args():
+    parser = argparse.ArgumentParser(
+        description='A tutorial of argparse!',
+        epilog='',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "--f",
+        help="path to csv",
+        type=str,
+        required=True
+    )
+    parser.add_argument(
+        "--h",
+        default=1,
+        help="show this help message and exit")
+    return parser.parse_args()
+
+
 def parse_dic_from_csv(playlist_csv):
     dictionary = {}
     print('Starting parsing ' + playlist_csv)
@@ -45,6 +67,24 @@ def parse_dic_from_csv(playlist_csv):
     for elem in dictionary:
         print(elem)
     return dictionary
+
+
+class Track(object):
+
+    def __init__(self, name, artist, album, is_downloaded=False):
+        temp = name.split("-")
+        self.title = temp[0].strip()
+        if len(temp) > 1:
+            self.info = temp[1].strip()
+        else:
+            self.info = ''
+        self.artist = artist
+        self.album = album
+        self.is_downloaded = is_downloaded
+
+    def __str__(self):
+        return self.title + ' | ' + self.info + ' | ' + self.artist + ' | ' + self.album + ' | ' + str(
+            self.is_downloaded)
 
 
 if __name__ == '__main__':
