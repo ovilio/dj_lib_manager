@@ -2,7 +2,7 @@ import csv
 import os
 # import click
 import argparse
-from Track import Track
+# from Track import Track
 from tinytag import TinyTag
 
 
@@ -29,34 +29,21 @@ def main():
         else:
             print(str(foundTrack) + ' is not found')
 
-    print('List of tracks titles from csv')
-    for elem in track_dic.values():
-        print(elem)
+    save_csv(track_dic)
 
 
-def setup_args():
-    parser = argparse.ArgumentParser(
-        description='A tutorial of argparse!',
-        epilog='',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument(
-        "--f",
-        help="path to csv",
-        type=str,
-        required=True
-    )
-    parser.add_argument(
-        "--h",
-        default=1,
-        help="show this help message and exit")
-    return parser.parse_args()
+def save_csv(track_dic):
+    with open('new.csv', mode='w') as result_csv:
+        csv_writer = csv.writer(result_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        csv_writer.writerow(['Track name', 'Artist name', 'Album', 'is downloaded'])
+        for track_row in track_dic.values():
+            csv_writer.writerow([track_row.title, track_row.artist, track_row.album, track_row.is_downloaded])
 
 
 def parse_dic_from_csv(playlist_csv):
     dictionary = {}
     print('Starting parsing ' + playlist_csv)
-    with open(playlist_csv) as csv_file:
+    with open(playlist_csv, mode='r') as csv_file:
         csv_reader = csv.reader(csv_file)
         next(csv_reader)  # to skip the header
         for csvLine in csv_reader:
@@ -85,6 +72,25 @@ class Track(object):
     def __str__(self):
         return self.title + ' | ' + self.info + ' | ' + self.artist + ' | ' + self.album + ' | ' + str(
             self.is_downloaded)
+
+
+def setup_args():
+    parser = argparse.ArgumentParser(
+        description='A tutorial of argparse!',
+        epilog='',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "--f",
+        help="path to csv",
+        type=str,
+        required=True
+    )
+    parser.add_argument(
+        "--h",
+        default=1,
+        help="show this help message and exit")
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
