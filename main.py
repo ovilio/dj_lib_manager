@@ -14,26 +14,27 @@ def main():
     track_dic = parse_dic_from_csv(playlist_csv)
 
     # get list of filenames in current directory
-    filesInDirList = filter(lambda x: x.endswith('.mp3') | x.endswith('.flac'), os.listdir())
+    files_list = filter(lambda x: x.endswith('.mp3') | x.endswith('.flac'), os.listdir())
 
-    for fileName in filesInDirList:
+    for fileName in files_list:
         # get metadata from each file
-        fileMetaData = TinyTag.get(fileName)
-        print('Trying to found csv line by track title: ' + fileMetaData.title.split()[0])
-        foundTrack = track_dic.get(fileMetaData.title.split()[0])
-        if foundTrack is not None:
-            print('found: ' + str(foundTrack))
+        file_metadata = TinyTag.get(fileName)
+        title = file_metadata.title.split()[0]
+        print('Trying to found csv line by track title: ' + title)
+        found_track = track_dic.get(title)
+        if found_track is not None:
+            print('found: ' + str(found_track))
             # mark track as downloaded and put into dictionary
-            foundTrack.is_downloaded = True
-            track_dic.update({foundTrack.title: foundTrack})
+            found_track.is_downloaded = True
+            track_dic.update({found_track.title: found_track})
         else:
-            print(str(foundTrack) + ' is not found')
+            print(title + ' is not found')
 
     save_csv(track_dic)
 
 
 def save_csv(track_dic):
-    with open('new.csv', mode='w') as result_csv:
+    with open('new.csv', mode='w', encoding='utf-8') as result_csv:
         csv_writer = csv.writer(result_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         csv_writer.writerow(['Track name', 'Artist name', 'Album', 'is downloaded'])
         for track_row in track_dic.values():
@@ -43,7 +44,7 @@ def save_csv(track_dic):
 def parse_dic_from_csv(playlist_csv):
     dictionary = {}
     print('Starting parsing ' + playlist_csv)
-    with open(playlist_csv, mode='r') as csv_file:
+    with open(playlist_csv, mode='r', encoding='utf-8') as csv_file:
         csv_reader = csv.reader(csv_file)
         next(csv_reader)  # to skip the header
         for csvLine in csv_reader:
