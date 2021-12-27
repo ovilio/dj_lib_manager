@@ -7,7 +7,7 @@ import re
 
 def main():
     playlist_csv = setup_args().f
-    track_dic = parse_dic_from_csv(playlist_csv)
+    track_dic = _parse_dic_from_csv(playlist_csv)
 
     # get list of filenames in current directory
     files_list = filter(lambda x: x.endswith('.mp3') | x.endswith('.flac'), os.listdir())
@@ -19,17 +19,17 @@ def main():
         print(f'Trying to found csv line by track title: "{title}"')
         found_track = track_dic.get(title)
         if found_track is not None:
-            print('found: ' + str(found_track))
             # mark track as downloaded and put into dictionary
             found_track.is_downloaded = True
             track_dic.update({found_track.title: found_track})
+            print('found: ' + str(found_track))
         else:
             print(title + ' is not found')
 
-    save_csv(track_dic)
+    _save_csv(track_dic)
 
 
-def save_csv(track_dict):
+def _save_csv(track_dict):
     with open('new.csv', mode='w', encoding='utf-8') as result_csv:
         csv_writer = csv.writer(result_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         csv_writer.writerow(['Track name', 'Artist name', 'Album', 'is downloaded', 'cant download'])
@@ -37,7 +37,7 @@ def save_csv(track_dict):
             csv_writer.writerow([track.original_name, track.artist, track.album, track.is_downloaded])
 
 
-def parse_dic_from_csv(playlist_csv):
+def _parse_dic_from_csv(playlist_csv):
     dictionary = {}
     print('Starting parsing ' + playlist_csv)
     with open(playlist_csv, mode='r', encoding='utf-8') as csv_file:
