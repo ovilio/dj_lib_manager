@@ -2,8 +2,8 @@ import csv
 import os
 # import click
 import argparse
-# from Track import Track
 from tinytag import TinyTag
+import re
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
     for fileName in files_list:
         # get metadata from each file
         file_metadata = TinyTag.get(fileName)
-        title = file_metadata.title.split()[0]
+        title = _get_simple_title(file_metadata.title)[0]
         print('Trying to found csv line by track title: ' + title)
         found_track = track_dic.get(title)
         if found_track is not None:
@@ -49,7 +49,11 @@ def parse_dic_from_csv(playlist_csv):
         next(csv_reader)  # to skip the header
         for csvLine in csv_reader:
             # fill dictionary of tracks with tracks from csv (key = trackname)
-            track = Track(csvLine[0], csvLine[1], csvLine[2])
+            temp = _get_simple_title(csvLine[0])
+            track = Track(temp[0], csvLine[1], csvLine[2])
+            # in a case when trackname contains additional info - add it
+            if len(temp) > 1:
+                track.info = temp[1]
             dictionary[track.title] = track
     print('List of tracks titles from csv')
     for elem in dictionary:
@@ -57,22 +61,21 @@ def parse_dic_from_csv(playlist_csv):
     return dictionary
 
 
+def _get_simple_title(title):
+    return list(map(lambda x: x.strip().lower(), re.split('\(|-', title, 1)))
+
+
 class Track(object):
 
-    def __init__(self, name, artist, album, is_downloaded=False):
-        temp = name.split("-")
-        self.title = temp[0].strip()
-        if len(temp) > 1:
-            self.info = temp[1].strip()
-        else:
-            self.info = ''
+    def __init__(self, title, artist, album, info='', is_downloaded=False):
+        self.title = title
+        self.info = info
         self.artist = artist
         self.album = album
         self.is_downloaded = is_downloaded
 
     def __str__(self):
-        return self.title + ' | ' + self.info + ' | ' + self.artist + ' | ' + self.album + ' | ' + str(
-            self.is_downloaded)
+        return f'{self.title} | {self.info} | {self.artist} | {self.album} | {str(self.is_downloaded)}'
 
 
 def setup_args():
