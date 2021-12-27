@@ -1,15 +1,11 @@
 import csv
 import os
-# import click
 import argparse
 from tinytag import TinyTag
 import re
 
 
 def main():
-    # open csv
-    # playlist_csv = './resources/playlist.csv'
-
     playlist_csv = setup_args().f
     track_dic = parse_dic_from_csv(playlist_csv)
 
@@ -19,8 +15,8 @@ def main():
     for fileName in files_list:
         # get metadata from each file
         file_metadata = TinyTag.get(fileName)
-        title = _get_simple_title(file_metadata.title)[0]
-        print('Trying to found csv line by track title: ' + title)
+        title = _get_simple_title(file_metadata.title)
+        print(f'Trying to found csv line by track title: "{title}"')
         found_track = track_dic.get(title)
         if found_track is not None:
             print('found: ' + str(found_track))
@@ -33,12 +29,12 @@ def main():
     save_csv(track_dic)
 
 
-def save_csv(track_dic):
+def save_csv(track_dict):
     with open('new.csv', mode='w', encoding='utf-8') as result_csv:
         csv_writer = csv.writer(result_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerow(['Track name', 'Artist name', 'Album', 'is downloaded'])
-        for track_row in track_dic.values():
-            csv_writer.writerow([track_row.title, track_row.artist, track_row.album, track_row.is_downloaded])
+        csv_writer.writerow(['Track name', 'Artist name', 'Album', 'is downloaded', 'cant download'])
+        for track in track_dict.values():
+            csv_writer.writerow([track.original_name, track.artist, track.album, track.is_downloaded])
 
 
 def parse_dic_from_csv(playlist_csv):
@@ -46,54 +42,45 @@ def parse_dic_from_csv(playlist_csv):
     print('Starting parsing ' + playlist_csv)
     with open(playlist_csv, mode='r', encoding='utf-8') as csv_file:
         csv_reader = csv.reader(csv_file)
-        next(csv_reader)  # to skip the header
         for csvLine in csv_reader:
             # fill dictionary of tracks with tracks from csv (key = trackname)
-            temp = _get_simple_title(csvLine[0])
-            track = Track(temp[0], csvLine[1], csvLine[2])
-            # in a case when trackname contains additional info - add it
-            if len(temp) > 1:
-                track.info = temp[1]
+            title = _get_simple_title(csvLine[0])
+            track = Track(csvLine[0], title, csvLine[1], csvLine[2])
             dictionary[track.title] = track
-    print('List of tracks titles from csv')
-    for elem in dictionary:
-        print(elem)
+    print("Success!")
     return dictionary
 
 
 def _get_simple_title(title):
-    return list(map(lambda x: x.strip().lower(), re.split('\(|-', title, 1)))
+    return re.split('\(|-', title, 1)[0].strip().lower()
 
 
 class Track(object):
 
-    def __init__(self, title, artist, album, info='', is_downloaded=False):
+    def __init__(self, original_name, title, artist, album, is_downloaded=False):
+        self.original_name = original_name
         self.title = title
-        self.info = info
         self.artist = artist
         self.album = album
         self.is_downloaded = is_downloaded
 
     def __str__(self):
-        return f'{self.title} | {self.info} | {self.artist} | {self.album} | {str(self.is_downloaded)}'
+        return f'{self.original_name} | {self.artist} | {self.album} | {str(self.is_downloaded)}'
 
 
 def setup_args():
     parser = argparse.ArgumentParser(
-        description='A tutorial of argparse!',
+        description='Music library management tool',
         epilog='',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
         "--f",
-        help="path to csv",
+        help="path to .csv file",
         type=str,
-        required=True
+        default="123.csv",
+        required=False
     )
-    parser.add_argument(
-        "--h",
-        default=1,
-        help="show this help message and exit")
     return parser.parse_args()
 
 
