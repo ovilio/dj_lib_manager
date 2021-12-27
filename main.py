@@ -37,10 +37,10 @@ def _save_csv(track_dict):
             csv_writer.writerow([track.original_name, track.artist, track.album, track.is_downloaded])
 
 
-def _parse_dic_from_csv(playlist_csv):
+def _parse_dic_from_csv(csv_filename) -> dict:
     dictionary = {}
-    print('Starting parsing ' + playlist_csv)
-    with open(playlist_csv, mode='r', encoding='utf-8') as csv_file:
+    print('Starting parsing ' + csv_filename)
+    with open(csv_filename, mode='r', encoding='utf-8') as csv_file:
         csv_reader = csv.reader(csv_file)
         for csvLine in csv_reader:
             # fill dictionary of tracks with tracks from csv (key = trackname)
@@ -51,11 +51,14 @@ def _parse_dic_from_csv(playlist_csv):
     return dictionary
 
 
-def _get_simple_title(title):
+def _get_simple_title(title) -> str:
+    """This method exclude from track name text separated by '-' and '(' chars"""
+
     return re.split('\(|-', title, 1)[0].strip().lower()
 
 
 class Track(object):
+    """Class to store track data"""
 
     def __init__(self, original_name, title, artist, album, is_downloaded=False):
         self.original_name = original_name
