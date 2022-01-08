@@ -1,13 +1,21 @@
 import csv
 import os
 import argparse
+import sys
+
 from tinytag import TinyTag
 import re
 
 
 def main():
-    playlist_csv = setup_args().f
+    args = setup_args()
+    playlist_csv = args.file
+
     track_dic = _parse_dic_from_csv(playlist_csv)
+
+    if args.format:
+        _save_csv(track_dic)
+        sys.exit()
 
     # get list of filenames in current directory
     files_list = filter(lambda x: x.endswith('.mp3') | x.endswith('.flac'), os.listdir())
@@ -27,12 +35,13 @@ def main():
             print(title + ' is not found')
 
     _save_csv(track_dic)
+    sys.exit()
 
 
 def _save_csv(track_dict):
     with open('new.csv', mode='w', encoding='utf-8') as result_csv:
         csv_writer = csv.writer(result_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerow(['Track name', 'Artist name', 'Album', 'is downloaded', 'cant download'])
+        csv_writer.writerow(['Track name', 'Artist name', 'Album', 'Is downloaded', 'Cant download'])
         for track in track_dict.values():
             csv_writer.writerow([track.original_name, track.artist, track.album, track.is_downloaded])
 
@@ -42,6 +51,7 @@ def _parse_dic_from_csv(csv_filename) -> dict:
     print('Starting parsing ' + csv_filename)
     with open(csv_filename, mode='r', encoding='utf-8') as csv_file:
         csv_reader = csv.reader(csv_file)
+        next(csv_reader)  # skip the header
         for csvLine in csv_reader:
             # fill dictionary of tracks with tracks from csv (key = trackname)
             title = _get_simple_title(csvLine[0])
@@ -78,10 +88,18 @@ def setup_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "--f",
+        "-f",
+        "--file",
         help="path to .csv file",
         type=str,
         default="123.csv",
+        required=False
+    )
+    parser.add_argument(
+        "--format",
+        help="just format csv file and quit",
+        action="store_true",
+        default=False,
         required=False
     )
     return parser.parse_args()
